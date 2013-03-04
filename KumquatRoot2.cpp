@@ -2,6 +2,7 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "wx/wx.h"
+#include "src/KrtMainFrame.h"
 
 class KumquatRoot2:public wxApp
 {
@@ -10,7 +11,7 @@ class KumquatRoot2:public wxApp
 
 bool KumquatRoot2::OnInit()
 {
-	wxFrame *frame = new wxFrame(NULL, wxID_ANY, wxT("橘根文件搜索 - KumquatRoot2"));
+	MainFrame *frame = new MainFrame( _T("橘根文件搜索 - KumquatRoot2") );
 	frame->Show(true);
 
 	return true;
