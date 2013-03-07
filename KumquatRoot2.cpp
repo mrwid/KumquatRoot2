@@ -12,7 +12,8 @@ class KumquatRoot2:public wxApp
 bool KumquatRoot2::OnInit()
 {
 	MainFrame *frame = new MainFrame( _T("éÙ¸ùÎÄ¼şËÑË÷ - KumquatRoot2") );
-	frame->Show(true);
+	frame->ShowModal();
+	frame->Destroy();
 
 	return true;
 }
