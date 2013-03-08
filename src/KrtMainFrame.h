@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include "wx/sizer.h"
+#include "wx/filefn.h"
 #include "wx/listctrl.h"
 #include "wx/hyperlink.h"
 
@@ -23,6 +24,7 @@ public:
 	void OnBtnBrowser( wxCommandEvent & );
 	void OnBtnStart( wxCommandEvent & );
 	void OnShowAboutDlg( wxCommandEvent & );
+	void OnDisplayResult( wxArrayString * );
 
 private:
 	wxBoxSizer  *topSizer;
@@ -122,8 +124,8 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 	//右侧搜索结果栏
 	wxStaticBoxSizer *resBoxSizer = new wxStaticBoxSizer( boxRes, wxVERTICAL );
 		resList = new wxListCtrl( this, wxID_ANY, wxPoint(-1, -1), wxSize(380, 300), wxLC_REPORT );
-		resList->InsertColumn( 0, _T("文件名"), wxLIST_FIND_LEFT, 150 );
-		resList->InsertColumn( 1, _T("文件路径"), wxLIST_FIND_LEFT, 200 );
+		resList->InsertColumn( 0, _T("文件名"), wxLC_REPORT, 150 );
+		resList->InsertColumn( 1, _T("文件路径"), wxLC_REPORT, 200 );
 		//resList->InsertItem(0, _T("文本文件.txt"));
 		//resList->SetItem(0, 1, _T("D:\\Develop\\a.txt"));
 	resBoxSizer->Add( resList, 1, wxALL|wxGROW, 10 );
@@ -162,6 +164,7 @@ void MainFrame::OnBtnBrowser( wxCommandEvent &event )
 void MainFrame::OnBtnStart( wxCommandEvent &event )
 {
 	wxArrayString parItems;
+	wxArrayString *resultItems = new wxArrayString;				//搜索结果
 	parItems.Add( txtRootPath->GetValue() );									//起始路径
 	parItems.Add( txtFileNameKey->GetValue() );									//文件名
 	parItems.Add( wxString::Format( "%i", chkUseNameKey->GetValue() ) );		//是否启用文件名匹配
@@ -171,9 +174,23 @@ void MainFrame::OnBtnStart( wxCommandEvent &event )
 	parItems.Add( txtNamesList->GetValue() );									//文件扩展名
 	parItems.Add( wxString::Format( "%i", rdoNamesType->GetSelection() ) );		//扩展名过滤类型
 	
-	SearchingDlg *dlg = new SearchingDlg( parItems, _T("正在搜索...") );
+	SearchingDlg *dlg = new SearchingDlg( resultItems, parItems, _T("正在搜索...") );
 	dlg->ShowModal();
 	dlg->Destroy();
+	OnDisplayResult( resultItems );
+}
+
+void MainFrame::OnDisplayResult( wxArrayString *items )
+{
+	boxRes->SetLabel( wxString::Format( "查找结果(%i)", items->GetCount() ) );
+	resList->DeleteAllItems();
+	unsigned long i = 0;
+	for( i; i < items -> GetCount(); i++ )
+	{
+		resList->InsertItem( 0, wxFileNameFromPath( (*items)[i]) );
+		resList->SetItem( 0, 1, (*items)[i] );
+	}
+	delete items;
 }
 
 //显示关于对话框
