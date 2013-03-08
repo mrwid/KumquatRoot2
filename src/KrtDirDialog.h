@@ -22,7 +22,7 @@ KrtDirDlg::KrtDirDlg():wxDialog(NULL, wxID_ANY, wxT("请选择起始目录:"), wxPoint(
 
 	topSizer = new wxBoxSizer( wxVERTICAL );
 	
-	dirCtrl = new wxGenericDirCtrl( this, 1001, _T(""), wxPoint(-1, -1), wxSize(300, 400), wxDIRCTRL_DIR_ONLY );
+	dirCtrl = new wxGenericDirCtrl( this, 1001, _T(""), wxPoint(-1, -1), wxSize(300, 300), wxDIRCTRL_DIR_ONLY );
 
     topSizer->Add( dirCtrl, 1, wxEXPAND| wxALL, 20 );
 
@@ -36,6 +36,8 @@ KrtDirDlg::KrtDirDlg():wxDialog(NULL, wxID_ANY, wxT("请选择起始目录:"), wxPoint(
     SetSizer( topSizer );
     topSizer->Fit( this );
     topSizer->SetSizeHints( this );
+
+	Center();
 }
 
 //////////////////////////////////////////////////////////////////////////
