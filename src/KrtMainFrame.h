@@ -4,9 +4,12 @@
 #include "wx/wx.h"
 #include "wx/sizer.h"
 #include "wx/listctrl.h"
+#include "wx/hyperlink.h"
 
 #include "KrtConstant.h"
 #include "KrtDirDialog.h"
+#include "KrtAboutDialog.h"
+#include "KrtSearchingDlg.h"
 
 //////////////////////////////////////////////////////////////////////////
 // 主界面 MainFrame 类声明
@@ -15,6 +18,11 @@ class MainFrame:public wxDialog
 {
 public:
 	MainFrame( const wxString &title = wxT("") );
+
+	//按钮事件
+	void OnBtnBrowser( wxCommandEvent & );
+	void OnBtnStart( wxCommandEvent & );
+	void OnShowAboutDlg( wxCommandEvent & );
 
 private:
 	wxBoxSizer  *topSizer;
@@ -35,6 +43,9 @@ private:
 
 	//搜索结果控件
 	wxListCtrl *resList;
+
+	//事件
+	DECLARE_EVENT_TABLE()
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -55,20 +66,23 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 	boxPar =  new wxStaticBox(this, wxID_ANY, wxT("查找参数设置") );
 	boxRes = new wxStaticBox(this, wxID_ANY, wxT("查找结果") );
 
+	//左侧参数配置栏
 	wxStaticBoxSizer *parBoxSizer = new wxStaticBoxSizer( boxPar, wxVERTICAL );
+		//第一层
 		wxBoxSizer *boxPath = new wxBoxSizer( wxHORIZONTAL );
 			boxPath->Add( new wxStaticText( this, wxID_ANY, _T("起始目录:")), 0, wxALIGN_CENTER| wxALL, 5 );
 			txtRootPath = new wxTextCtrl( this, wxID_ANY, _T(""), wxPoint(-1, -1), wxSize(160, -1) );
 			boxPath->Add( txtRootPath, 0, wxALIGN_CENTER|wxALL, 5 );
 			boxPath->Add( new wxButton( this, BTN_GETROOT, _T("浏览..(&B)")), 0, wxALIGN_CENTER|wxALL, 5 );
 
+		//第二层
 		wxBoxSizer *nameKey = new wxBoxSizer( wxHORIZONTAL );
 			nameKey->Add( new wxStaticText( this, wxID_ANY, _T("匹配文件名称:")), 0, wxALIGN_CENTER|wxALL, 5 );
 			txtFileNameKey = new wxTextCtrl( this, wxID_ANY, _T(""), wxPoint(-1, -1), wxSize(170, -1) );
 			nameKey->Add( txtFileNameKey,  0, wxALIGN_CENTER|wxALL, 5 );
 			chkUseNameKey = new wxCheckBox( this, wxID_ANY, _T("启用") );
 			nameKey->Add( chkUseNameKey,  0, wxALIGN_CENTER|wxALL, 5 );
-
+		//第三层
 		wxBoxSizer *contKey = new wxBoxSizer( wxHORIZONTAL );
 			contKey->Add( new wxStaticText( this, wxID_ANY, _T("匹配文件内容:")), 0, wxALIGN_CENTER|wxALL, 5 );
 			txtFileContKey = new wxTextCtrl( this, wxID_ANY, _T(""), wxPoint(-1, -1), wxSize(170, -1) );
@@ -76,6 +90,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 			chkUseContKey = new wxCheckBox( this, wxID_ANY, _T("启用") );
 			contKey->Add( chkUseContKey,  0, wxALIGN_CENTER|wxALL, 5 );
 		
+		//第四层
 		wxBoxSizer *boxSearchType = new wxBoxSizer( wxHORIZONTAL );
 			boxSearchType->Add( new wxStaticText(this, wxID_ANY, _T("选择匹配模式:")), 1, wxALIGN_CENTER|wxALL, 5 );
 			wxArrayString items;
@@ -84,6 +99,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 			boxSearchType->Add( rdoSearchType,  0, wxALIGN_CENTER|wxALL, 5 );
 		//////////////////////////////////////////////////////////////////////////
 
+		//第五层
 		wxStaticBox *boxNames = new wxStaticBox( this, wxID_ANY, _T("按扩展名过滤") );
 		wxStaticBoxSizer *boxNamesSizer = new wxStaticBoxSizer( boxNames, wxVERTICAL );
 			txtNamesList = new wxTextCtrl( this, wxID_ANY, _T(""), wxPoint(-1, -1), wxSize(200, -1) );
@@ -103,6 +119,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 	btnStartSearch = new wxButton( this, BTN_START_SEARCH, _T("开始搜索(&S)"), wxPoint(-1, -1), wxSize(100, 40) );
 	parBoxSizer->Add( btnStartSearch, 0, wxALL|wxALIGN_CENTER, 0 );
 
+	//右侧搜索结果栏
 	wxStaticBoxSizer *resBoxSizer = new wxStaticBoxSizer( boxRes, wxVERTICAL );
 		resList = new wxListCtrl( this, wxID_ANY, wxPoint(-1, -1), wxSize(380, 300), wxLC_REPORT );
 		resList->InsertColumn( 0, _T("文件名"), wxLIST_FIND_LEFT, 150 );
@@ -122,4 +139,47 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 	//////////////////////////////////////////////////////////////////////////
 	
 	Center();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//事件绑定
+BEGIN_EVENT_TABLE(MainFrame, wxDialog)
+EVT_BUTTON( BTN_GETROOT, MainFrame::OnBtnBrowser )
+EVT_BUTTON( BTN_START_SEARCH, MainFrame::OnBtnStart )
+END_EVENT_TABLE()
+
+
+//////////////////////////////////////////////////////////////////////////
+
+void MainFrame::OnBtnBrowser( wxCommandEvent &event )
+{
+	KrtDirDlg *dlg = new KrtDirDlg;
+	if( dlg->ShowModal() == wxID_OK )
+		txtRootPath->SetValue( dlg->getDirPath() );
+	dlg->Destroy();
+}
+
+void MainFrame::OnBtnStart( wxCommandEvent &event )
+{
+	wxArrayString parItems;
+	parItems.Add( txtRootPath->GetValue() );									//起始路径
+	parItems.Add( txtFileNameKey->GetValue() );									//文件名
+	parItems.Add( wxString::Format( "%i", chkUseNameKey->GetValue() ) );		//是否启用文件名匹配
+	parItems.Add( txtFileContKey->GetValue() );									//文件内容
+	parItems.Add( wxString::Format( "%i", chkUseContKey ->GetValue() ) );		//是否启用文件内容匹配
+	parItems.Add( wxString::Format( "%i", rdoSearchType->GetSelection() ) );	//搜索类型
+	parItems.Add( txtNamesList->GetValue() );									//文件扩展名
+	parItems.Add( wxString::Format( "%i", rdoNamesType->GetSelection() ) );		//扩展名过滤类型
+	
+	SearchingDlg *dlg = new SearchingDlg( parItems, _T("正在搜索...") );
+	dlg->ShowModal();
+	dlg->Destroy();
+}
+
+//显示关于对话框
+void MainFrame::OnShowAboutDlg( wxCommandEvent &event )
+{
+	AboutDlg *dlg = new AboutDlg( _T("关于 KumquatRoot2") );
+	dlg->ShowModal();
+	dlg->Destroy();
 }
