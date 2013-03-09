@@ -2,6 +2,8 @@
 #include "KrtThreadWork.h"
 #include "KrtConstant.h"
 
+#include "wx/regex.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 ThreadWork::ThreadWork(
@@ -106,21 +108,35 @@ bool ThreadWork::matchFileName( wxString &path )
 //仅过滤扩展名
 bool ThreadWork::unfitExtendName( wxString &path )
 {
-	wxString extName;
+	wxString extName;	wxString ret;	wxString par = parItems[6];
 	wxSplitPath( path, NULL, NULL, &extName );
-	if( parItems[6].Find( extName ) == wxNOT_FOUND )
-		return true;
 
-	return false;
+	wxRegEx re( "\\w\\S*", wxRE_ADVANCED  );
+	while( re.Matches( par ) )
+	{
+		ret = re.GetMatch( par );
+		if( ret == extName )
+			return false;
+		par.Replace( ret, _T(""), false );
+	}
+
+	return true;
 }
 
 //仅搜索扩展名
 bool ThreadWork::fitExtendName( wxString &path )
 {
-	wxString extName;
+	wxString extName;	wxString ret;	wxString par = parItems[6];
 	wxSplitPath( path, NULL, NULL, &extName );
-	if( parItems[6].Find( extName ) != wxNOT_FOUND )
-		return true;
+
+	wxRegEx re( "\\w\\S*", wxRE_ADVANCED  );
+	while( re.Matches( par ) )
+	{
+		ret = re.GetMatch( par );
+		if( ret == extName )
+			return true;
+		par.Replace( ret, _T(""), false );
+	}
 
 	return false;
 }
