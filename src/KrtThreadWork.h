@@ -37,6 +37,7 @@ private:
 
 	//按条件检索
 	bool matchFileName( wxString & );			//普通匹配文件名
+	bool regexMatchFileName( wxString & );			//正则方式匹配文件名
 
 	//...
 

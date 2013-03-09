@@ -81,9 +81,19 @@ void *ThreadWork::Entry()
 
 bool ThreadWork::MatchTheFile( wxString &path )
 {
-	if( parItems[2] == _T("1") )			//普通方式匹配文件名
-		if( !matchFileName( path ) )
-			return false;
+	if( parItems[5] == _T("0") )	//普通匹配
+	{
+		if( parItems[2] == _T("1") )			//普通方式匹配文件名
+			if( !matchFileName( path ) )
+				return false;
+	}
+
+	if( parItems[5] == _T("1") )	//正则匹配
+	{
+		if( parItems[2] == _T("1") )			//正则方式匹配文件名
+			if( !regexMatchFileName( path ) )
+				return false;
+	}
 
 	if( parItems[7] == _T("0") )			//过滤以上扩展名
 		if( !unfitExtendName( path ) )
@@ -100,6 +110,19 @@ bool ThreadWork::MatchTheFile( wxString &path )
 bool ThreadWork::matchFileName( wxString &path )
 {
 	if( wxFileNameFromPath( path ).Find(parItems[1]) != wxNOT_FOUND )
+		return true;
+	
+	return false;
+}
+
+///正则方式匹配文件名
+bool ThreadWork::regexMatchFileName( wxString &path )
+{
+	
+	wxRegEx re( parItems[1], wxRE_ADVANCED );
+	if(  !re.IsValid() )
+		return false;
+	if( re.Matches( wxFileNameFromPath( path ) ) )
 		return true;
 	
 	return false;
