@@ -8,9 +8,13 @@
 
 
 // SearchingDlg
-#define		BTN_PAUSECONTINUE	10002			//暂停/继续按钮
-#define		BTN_STOPEXIT		10003			//停止/退出
+#define		DLG_SEARCHDLG		10002			//搜索对话框
+#define		BTN_PAUSECONTINUE	10003			//暂停/继续按钮
+#define		BTN_STOPEXIT		10004			//停止/退出
 
 // SearchingDlg - wxTimer
-#define		TMR_REDRAW_UI		10004			//定时重绘UI
+#define		TMR_REDRAW_UI		10005			//定时重绘UI
 
+
+// ThreadWork
+#define		VIR_BTN_DONE		10006			//通知UI线程完成
