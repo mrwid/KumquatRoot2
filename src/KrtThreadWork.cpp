@@ -34,7 +34,7 @@ void *ThreadWork::Entry()
 		if( (dirItems[0].Find("\\") == -1) && (dirItems[0].Find('/') == -1) )
 		{
 			dirItems.RemoveAt(0);
-			wxMessageBox( _T("路径问题") );
+			wxMessageBox( _T("目录路径错误!") );
 			continue;
 		}
 		wxDir dir( dirItems[0] );			//打开队列前端目录路径
@@ -52,7 +52,11 @@ void *ThreadWork::Entry()
 				dirItems.Add( tempPath );			//为目录时则添加到目录队列
 			else
 			{
-				resultItems.Add( tempPath );
+				if( MatchTheFile( tempPath ) )			//按参数匹配该文件
+				{
+					resultItems.Add( tempPath );
+					lFit++;
+				}
 				current = tempPath;
 				lTotal++;
 			}
@@ -67,4 +71,56 @@ void *ThreadWork::Entry()
 		wxPostEvent( wnd->GetEventHandler(), event );
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//检索入口
+
+bool ThreadWork::MatchTheFile( wxString &path )
+{
+	if( parItems[2] == _T("1") )			//普通方式匹配文件名
+		if( !matchFileName( path ) )
+			return false;
+
+	if( parItems[7] == _T("0") )			//过滤以上扩展名
+		if( !unfitExtendName( path ) )
+			return false;
+
+	if( parItems[7] == _T("1") )			//仅搜索以上扩展名
+		if( !fitExtendName( path ) )
+			return false;
+
+	return true;
+}
+
+//普通匹配文件名
+bool ThreadWork::matchFileName( wxString &path )
+{
+	if( wxFileNameFromPath( path ).Find(parItems[1]) != wxNOT_FOUND )
+		return true;
+	
+	return false;
+}
+
+//仅过滤扩展名
+bool ThreadWork::unfitExtendName( wxString &path )
+{
+	wxString extName;
+	wxSplitPath( path, NULL, NULL, &extName );
+	if( parItems[6].Find( extName ) == wxNOT_FOUND )
+		return true;
+
+	return false;
+}
+
+//仅搜索扩展名
+bool ThreadWork::fitExtendName( wxString &path )
+{
+	wxString extName;
+	wxSplitPath( path, NULL, NULL, &extName );
+	if( parItems[6].Find( extName ) != wxNOT_FOUND )
+		return true;
+
+	return false;
 }

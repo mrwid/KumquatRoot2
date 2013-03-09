@@ -111,7 +111,6 @@ void SearchingDlg::OnRedrawUI( wxTimerEvent &event )
 	lblFitTotal->SetLabel( wxString::Format( "符合条件: %i", iFitTotal ) );
 }
 
-
 //搜索的暂停与继续
 void SearchingDlg::OnPauseContinue( wxCommandEvent &event )
 {
@@ -135,6 +134,11 @@ void SearchingDlg::OnSearchDone( wxCommandEvent &event )
 	tmrRedrawUI.Stop();
 	btnStopExit->SetLabel( _T("完成!") );
 	
+	gauge->SetValue(100);
+	lblCurrentFile->SetLabel( _T("当前文件: ") + strCurrentFile );
+	lblFileTotal->SetLabel( wxString::Format( "已查找: %i", iTotalFile ) );
+	lblFitTotal->SetLabel( wxString::Format( "符合条件: %i", iFitTotal ) );
+
 	wxMessageBox(
 		wxString::Format( "完成! 共搜索文件: %i, 符合条件: %i", iTotalFile, iFitTotal),
 		_T("完成"),
