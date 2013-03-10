@@ -3,7 +3,9 @@
 #include "wx/wx.h"
 #include "wx/app.h"
 #include "wx/dir.h"
+#include "wx/regex.h"
 #include "wx/timer.h"
+#include "wx/ffile.h"
 #include "wx/filefn.h"
 #include "wx/thread.h"
 
@@ -32,12 +34,18 @@ private:
 	wxWindow	*wnd;
 	bool &threadstop;
 
+	//读取文件内容
+	void readFileData( wxString &, wxString & );	//读取文件内容
+
 	//检索入口
 	bool MatchTheFile( wxString & );
 
 	//按条件检索
-	bool matchFileName( wxString & );			//普通匹配文件名
+	bool matchFileName( wxString & );				//普通匹配文件名
 	bool regexMatchFileName( wxString & );			//正则方式匹配文件名
+
+	bool matchFileCont( wxString & );				//普通方式匹配文件内容
+	bool regexMatchFileCont( wxString & );			//正则方式匹配文件内容
 
 	//...
 

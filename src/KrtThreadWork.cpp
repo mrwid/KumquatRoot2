@@ -2,7 +2,6 @@
 #include "KrtThreadWork.h"
 #include "KrtConstant.h"
 
-#include "wx/regex.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +35,7 @@ void *ThreadWork::Entry()
 		if( (dirItems[0].Find("\\") == -1) && (dirItems[0].Find('/') == -1) )
 		{
 			dirItems.RemoveAt(0);
-			wxMessageBox( _T("目录路径错误!") );
+			wxMessageBox( _T("起始路径不能为空!"), _T("错误"), wxOK|wxICON_INFORMATION );
 			continue;
 		}
 		wxDir dir( dirItems[0] );			//打开队列前端目录路径
@@ -77,8 +76,29 @@ void *ThreadWork::Entry()
 
 
 //////////////////////////////////////////////////////////////////////////
-//检索入口
+//读取文件内容
+void ThreadWork::readFileData( wxString &path, wxString &data )
+{
+	wxFFile f( path, "rb" );
+	if( !f.IsOpened() )
+		return;
 
+	wxChar *chr = new wxChar;
+	unsigned long int i = 1;
+	unsigned long int fileLength = f.Length();
+	for( i; i <= fileLength; i++ )
+	{
+		f.Read( chr, 1 );
+		if( *chr != 0 )
+			data.Append( *chr );
+		else
+			break;
+		f.Seek( i );
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//检索入口
 bool ThreadWork::MatchTheFile( wxString &path )
 {
 	if( parItems[5] == _T("0") )	//普通匹配
@@ -86,12 +106,20 @@ bool ThreadWork::MatchTheFile( wxString &path )
 		if( parItems[2] == _T("1") )			//普通方式匹配文件名
 			if( !matchFileName( path ) )
 				return false;
+
+		if( parItems[4] == _T("1") )			//普通方式匹配文件内容
+			if( ! matchFileCont( path ) )
+				return false;
 	}
 
 	if( parItems[5] == _T("1") )	//正则匹配
 	{
 		if( parItems[2] == _T("1") )			//正则方式匹配文件名
 			if( !regexMatchFileName( path ) )
+				return false;
+
+		if( parItems[4] == _T("1") )			//正则方式匹配文件内容
+			if( !regexMatchFileCont( path ) )
 				return false;
 	}
 
@@ -105,6 +133,9 @@ bool ThreadWork::MatchTheFile( wxString &path )
 
 	return true;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
 
 //普通匹配文件名
 bool ThreadWork::matchFileName( wxString &path )
@@ -144,6 +175,39 @@ bool ThreadWork::unfitExtendName( wxString &path )
 	}
 
 	return true;
+}
+
+//普通方式匹配文件内容
+bool ThreadWork::matchFileCont( wxString &path )
+{
+	wxString *cont = new wxString;
+	readFileData( path, *cont );
+	if( cont->Find( parItems[3] ) != wxNOT_FOUND )
+	{
+		cont->Clear();
+		return true;
+	}
+	cont->Clear();
+	return false;
+}
+
+//正则方式匹配文件内容
+bool ThreadWork::regexMatchFileCont( wxString &path )
+{
+	wxString *cont = new wxString;
+	readFileData( path, *cont );
+	wxRegEx re( parItems[3], wxRE_ADVANCED );
+
+	if( !re.IsValid() )
+		return false;
+	
+	if( re.Matches( *cont ) )
+	{
+		cont->Clear();
+		return true;
+	}
+	cont->Clear();
+	return false;
 }
 
 //仅搜索扩展名
