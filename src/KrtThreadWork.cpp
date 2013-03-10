@@ -32,12 +32,14 @@ void *ThreadWork::Entry()
 	wxString filename;		bool cont;		wxString tempPath;
 	while( dirItems.GetCount() && ( !threadstop ) )			//当目录队列不为空时执行
 	{
+		/* 空路径默认为当前文件夹
 		if( (dirItems[0].Find("\\") == -1) && (dirItems[0].Find('/') == -1) )
 		{
 			dirItems.RemoveAt(0);
 			wxMessageBox( _T("起始路径不能为空!"), _T("错误"), wxOK|wxICON_INFORMATION );
 			continue;
 		}
+		*/
 		wxDir dir( dirItems[0] );			//打开队列前端目录路径
 		if( !dir.IsOpened() )
 		{

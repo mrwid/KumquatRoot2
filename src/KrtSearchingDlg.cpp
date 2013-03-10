@@ -16,15 +16,7 @@ SearchingDlg::SearchingDlg(
 	therad_stop(false)
 {
 	resultItems = resItems;
-	/*
-	unsigned int i = 0;
-	int y = 10;
-	for( i; i < parItems.GetCount(); i++ )
-	{
-		new wxStaticText( this, -1, parItems[i], wxPoint(10, y) );
-		y += 20;
-	}
-	*/
+
 	wxBoxSizer *topSizer = new wxBoxSizer( wxVERTICAL ) ;
 		wxBoxSizer *boxBtn = new wxBoxSizer( wxHORIZONTAL );
 			gauge = new wxGauge( this, wxID_ANY, 100, wxPoint(15, 20), wxSize(300, 25) );
@@ -132,6 +124,7 @@ void SearchingDlg::OnPauseContinue( wxCommandEvent &event )
 void SearchingDlg::OnSearchDone( wxCommandEvent &event )
 {
 	tmrRedrawUI.Stop();
+	btnPauseContinue->Disable();
 	btnStopExit->SetLabel( _T("Íê³É!") );
 	
 	gauge->SetValue(100);

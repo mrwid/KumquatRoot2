@@ -109,6 +109,11 @@ BEGIN_EVENT_TABLE(MainFrame, wxDialog)
 EVT_BUTTON( BTN_GETROOT, MainFrame::OnBtnBrowser )
 EVT_BUTTON( BTN_START_SEARCH, MainFrame::OnBtnStart )
 EVT_LIST_ITEM_RIGHT_CLICK( LIST_RESULT, MainFrame::OnShowPopMenu )
+EVT_MENU( MENU_OPEN, MainFrame::OnOpenTheFile )
+EVT_MENU( MENU_PLACE, MainFrame::OnOpenFileDir )
+EVT_MENU( MENU_ABOUT, MainFrame::OnShowAboutDlg )
+EVT_MENU( MENU_SAVEAS, MainFrame::OnSaveAsFile )
+EVT_MENU( MENU_DELETE, MainFrame::OnDeleteFile )
 END_EVENT_TABLE()
 
 
@@ -126,6 +131,8 @@ void MainFrame::OnBtnStart( wxCommandEvent &event )
 {
 	wxArrayString parItems;
 	wxArrayString *resultItems = new wxArrayString;				//搜索结果
+	if( txtRootPath->GetValue() == wxEmptyString )
+		txtRootPath->SetValue( wxGetCwd() );
 	parItems.Add( txtRootPath->GetValue() );									//起始路径
 	parItems.Add( txtFileNameKey->GetValue() );									//文件名
 	parItems.Add( wxString::Format( "%i", chkUseNameKey->GetValue() ) );		//是否启用文件名匹配
@@ -142,6 +149,15 @@ void MainFrame::OnBtnStart( wxCommandEvent &event )
 
 void MainFrame::OnDisplayResult( wxArrayString *items )
 {
+	if( items -> GetCount() > 3000 )
+	{
+		wxMessageDialog dlg( NULL,
+			_T("符合条件的结果超过 3000, 确定需要显示出来吗?"), _T("询问"),
+			wxOK|wxCANCEL|wxICON_QUESTION
+		);
+		if( dlg.ShowModal() == wxID_CANCEL )
+			return;
+	}
 	boxRes->SetLabel( wxString::Format( "查找结果(%i)", items->GetCount() ) );
 	resList->DeleteAllItems();
 	unsigned long i = 0;
@@ -155,9 +171,74 @@ void MainFrame::OnDisplayResult( wxArrayString *items )
 
 
 //////////////////////////////////////////////////////////////////////////
+
+wxString MainFrame::getListSelectedPtah()
+{
+	unsigned long index = resList->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED );
+	wxListItem item;
+	item.SetMask(wxLIST_MASK_TEXT);
+	item.SetId(index);
+	item.SetColumn(1);
+	resList->GetItem(item);
+	return item.GetText();
+}
+
+//弹出右键菜单
 void MainFrame::OnShowPopMenu( wxListEvent &event )
 {
 	PopupMenu( popMenu );
+}
+
+//打开文件
+void MainFrame::OnOpenTheFile( wxCommandEvent &event )
+{
+	if( ShellExecute( NULL, _T("open"), getListSelectedPtah(), "", "", 1 ) <= (HINSTANCE)32 )
+		wxMessageBox( _T("未找到有效的打开方式!"), _T("打开失败"), wxOK|wxICON_INFORMATION );
+}
+
+//打开文件所在目录
+void MainFrame::OnOpenFileDir( wxCommandEvent &event )
+{
+	WinExec( "explorer /select, " + getListSelectedPtah(), SW_NORMAL );
+}
+
+//文件另存为
+void MainFrame::OnSaveAsFile( wxCommandEvent &event )
+{
+	wxString name, ext, fullPath = getListSelectedPtah();
+	
+	wxSplitPath( fullPath, NULL, &name, &ext );
+	wxFileDialog dlg( NULL, _T("另存为..."), wxGetCwd(), name, _T(".")+ext );
+	if( dlg.ShowModal() == wxID_OK )
+	{
+		if( wxFileExists( fullPath ) )
+		{
+			wxMessageDialog reDlg( NULL,
+				wxString::Format( "此文件中已包含一个名为 %s.%s 的文件, 覆盖该文件?", name, ext ),
+				_T("确认文件替换"), wxYES|wxNO|wxICON_QUESTION
+			);
+			if( reDlg.ShowModal() == wxYES )
+				if( !wxCopyFile( getListSelectedPtah(), dlg.GetPath() ) )
+					wxMessageBox( _T("另存为失败!"), _T("失败"), wxOK|wxICON_INFORMATION );
+		}
+	}
+}
+
+//删除文件
+void MainFrame::OnDeleteFile( wxCommandEvent & )
+{
+	wxString name, ext, fullPath = getListSelectedPtah();
+	wxSplitPath( fullPath, NULL, &name, &ext );
+	wxMessageDialog dlg( NULL, wxString::Format("确认删除 %s.%s ?", name, ext), _T("删除确认"), wxOK|wxCANCEL|wxICON_QUESTION );
+	if( dlg.ShowModal() == wxID_OK )
+	{
+		if( !wxRemoveFile( fullPath ) )
+		{
+			wxMessageBox( _T("删除失败!"), _T("失败"), wxOK|wxICON_INFORMATION );
+			return;
+		}
+		resList->DeleteItem( resList->GetNextItem( -1, wxLIST_NEXT_ALL, wxLIST_STATE_FOCUSED ) );
+	}
 }
 
 //显示关于对话框
