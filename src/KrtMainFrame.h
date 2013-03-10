@@ -3,6 +3,7 @@
 
 #include "wx/wx.h"
 #include "wx/app.h"
+#include "wx/menu.h"
 #include "wx/sizer.h"
 #include "wx/filefn.h"
 #include "wx/listctrl.h"
@@ -25,6 +26,7 @@ public:
 	void OnBtnStart( wxCommandEvent & );
 	void OnShowAboutDlg( wxCommandEvent & );
 	void OnDisplayResult( wxArrayString * );
+	void OnShowPopMenu( wxListEvent & );
 
 private:
 	wxBoxSizer  *topSizer;
@@ -45,6 +47,9 @@ private:
 
 	//搜索结果控件
 	wxListCtrl *resList;
+
+	//搜索结果右键菜单
+	wxMenu *popMenu;
 
 	//事件
 	DECLARE_EVENT_TABLE()

@@ -1,4 +1,7 @@
 #include "KrtMainFrame.h"
+
+//////////////////////////////////////////////////////////////////////////
+
 // MainFrame 构造函数的实现
 MainFrame::MainFrame( const wxString &title ):wxDialog(
 	NULL,
@@ -43,7 +46,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 		wxBoxSizer *boxSearchType = new wxBoxSizer( wxHORIZONTAL );
 			boxSearchType->Add( new wxStaticText(this, wxID_ANY, _T("选择匹配模式:")), 1, wxALIGN_CENTER|wxALL, 5 );
 			wxArrayString items;
-			items.Add( _T("普通精确匹配") );	items.Add( _T("正则表达式匹配") );
+			items.Add( _T("普通模糊匹配") );	items.Add( _T("正则表达式匹配") );
 			rdoSearchType = new wxRadioBox( this, wxID_ANY, _T(""),wxPoint(-1, -1), wxSize(-1, -1), items );
 			boxSearchType->Add( rdoSearchType,  0, wxALIGN_CENTER|wxALL, 5 );
 		//////////////////////////////////////////////////////////////////////////
@@ -70,7 +73,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 
 	//右侧搜索结果栏
 	wxStaticBoxSizer *resBoxSizer = new wxStaticBoxSizer( boxRes, wxVERTICAL );
-		resList = new wxListCtrl( this, wxID_ANY, wxPoint(-1, -1), wxSize(380, 300), wxLC_REPORT );
+		resList = new wxListCtrl( this, LIST_RESULT, wxPoint(-1, -1), wxSize(380, 300), wxLC_REPORT );
 		resList->InsertColumn( 0, _T("文件名"), wxLC_REPORT, 150 );
 		resList->InsertColumn( 1, _T("文件路径"), wxLC_REPORT, 200 );
 		//resList->InsertItem(0, _T("文本文件.txt"));
@@ -86,6 +89,16 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
     topSizer->SetSizeHints( this );			// 设置对话框最小大小
 
 	//////////////////////////////////////////////////////////////////////////
+	//搜索结果右键菜单
+	popMenu = new wxMenu;
+	popMenu->Append( MENU_OPEN, _T("打开文件(&O)") );
+	popMenu->Append( MENU_PLACE, _T("打开所在目录(&P)") );
+	popMenu->Append( MENU_SAVEAS, _T("另存为...(&S)") );
+	popMenu->Append( MENU_DELETE, _T("删除文件(&D)") );
+	popMenu->AppendSeparator();
+	popMenu->Append( MENU_ABOUT, _T("关于 KumquatRoot2") );
+
+	//////////////////////////////////////////////////////////////////////////
 	
 	Center();
 }
@@ -95,6 +108,7 @@ MainFrame::MainFrame( const wxString &title ):wxDialog(
 BEGIN_EVENT_TABLE(MainFrame, wxDialog)
 EVT_BUTTON( BTN_GETROOT, MainFrame::OnBtnBrowser )
 EVT_BUTTON( BTN_START_SEARCH, MainFrame::OnBtnStart )
+EVT_LIST_ITEM_RIGHT_CLICK( LIST_RESULT, MainFrame::OnShowPopMenu )
 END_EVENT_TABLE()
 
 
@@ -137,6 +151,13 @@ void MainFrame::OnDisplayResult( wxArrayString *items )
 		resList->SetItem( 0, 1, (*items)[i] );
 	}
 	items->Clear();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+void MainFrame::OnShowPopMenu( wxListEvent &event )
+{
+	PopupMenu( popMenu );
 }
 
 //显示关于对话框
